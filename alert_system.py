@@ -51,8 +51,10 @@ def check_anomaly_IQR(df, metric, a=1.5):
     return alert_flag, df, lower, up, avg
 
 def run_alerts(chat=None):
-    chat_id = chat or 453565850
+    # chat_id = chat or 453565850
+    chat_id = chat or -1001706798154
     bot = telegram.Bot(token='5167010511:AAETy3cSIsBkRmmrI-4DmhMTVurzlwfVLi4')
+    # bot = telegram.Bot(token=os.environ.get("REPORT_BOT_TOKEN"))
     
     data = select("""
     SELECT toStartOfFifteenMinutes(time) ts,
@@ -181,4 +183,8 @@ def run_alerts(chat=None):
             bot.sendPhoto(chat_id=chat_id, photo=fig_object)
 
 
-run_alerts()
+try:
+    run_alerts()
+except Exception as e:
+    print(e)
+
