@@ -1,0 +1,12 @@
+image: cr.yandex/crp742p3qacifd2hcon2/practice-da:latest
+
+stages:
+    - init
+    - run
+
+test_report_job:
+    stage: run
+    only: 
+        - schedules
+    script: 
+        - python alert_system.py
