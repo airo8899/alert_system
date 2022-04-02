@@ -87,7 +87,7 @@ def run_alerts(chat=None):
         df = data[['ts', 'date', 'hm', metric]].copy()
         is_alert, df = check_anomaly_CI(df, metric)
         
-        if is_alert or True:
+        if is_alert:
             msg = f'''Метрика {metric}:
     текущее значение - {df[metric].iloc[-1]},
     отклонение от предыдущего значения - {abs(1 - df[metric].iloc[-1]/df[metric].iloc[-2]) * 100:.2f}%,
@@ -146,7 +146,7 @@ def run_alerts(chat=None):
         df = data[['ts', metric]].copy()
         is_alert, df, lower, up, avg = check_anomaly_IQR(df, metric)
         
-        if is_alert or True:
+        if is_alert:
             msg = f'''Метрика {metric}:
     текущее значение - {df[metric].iloc[-1]},
     отклонение от среднего значения - {abs(1 - df[metric].iloc[-1]/avg) * 100:.2f}%,
