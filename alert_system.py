@@ -21,13 +21,15 @@ sns.set_style('darkgrid')
 sns.set_palette('bright')
 sns.set_context('notebook')
 
-def check_anomaly_CI(df, metric, alpha=0.01, n=5):
+
+
+def check_anomaly_CI(df, metric, alpha=0.01, n=6):
     df['mean'] = df[metric].shift(1).rolling(n).mean()
     df['std'] = df[metric].shift(1).rolling(n).std()
     df['lower'] = t.ppf((alpha/2, 1 - alpha/2), df=n-1, loc=df[['mean']], scale=df[['std']])[:, 0]
     df['up'] = t.ppf((alpha/2, 1 - alpha/2), df=n-1, loc=df[['mean']], scale=df[['std']])[:, 1]
-    df['lower'] = df['lower'].rolling(3, center=True, min_periods=1).mean()
-    df['up'] = df['up'].rolling(3, center=True, min_periods=1).mean()
+    df['lower'] = df['lower'].rolling(n, center=True, min_periods=1).mean()
+    df['up'] = df['up'].rolling(n, center=True, min_periods=1).mean()
     
     
     if df[metric].iloc[-1] < df['lower'].iloc[-1] or df[metric].iloc[-1] > df['up'].iloc[-1]:
@@ -36,6 +38,9 @@ def check_anomaly_CI(df, metric, alpha=0.01, n=5):
         alert_flag = 0
     
     return alert_flag, df
+
+
+
 
 def check_anomaly_IQR(df, metric, a=1.5):
     iqr = df[metric].quantile(0.75) - df[metric].quantile(0.25)
@@ -51,8 +56,8 @@ def check_anomaly_IQR(df, metric, a=1.5):
     return alert_flag, df, lower, up, avg
 
 def run_alerts(chat=None):
-    chat_id = chat or 453565850
-    # chat_id = chat or -1001706798154
+    # chat_id = chat or 453565850
+    chat_id = chat or -1001706798154
     bot = telegram.Bot(token='5167010511:AAETy3cSIsBkRmmrI-4DmhMTVurzlwfVLi4')
     # bot = telegram.Bot(token=os.environ.get("REPORT_BOT_TOKEN"))
     
@@ -156,7 +161,7 @@ def run_alerts(chat=None):
             fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(12,12))
             plt.suptitle(metric)
 
-            sns.lineplot(x=df['ts'].iloc[-5:], y=df[metric].iloc[-5:], ax=ax[0], marker='o', label=metric)
+            sns.lineplot(x=df['ts'].iloc[-5:], y=df[metric].iloc[-5:], ax=ax[0], marker='o')
             ax[0].set
             ax[0].axhline(lower, color='red', label='lower')
             ax[0].axhline(up, color='green', label='up')
