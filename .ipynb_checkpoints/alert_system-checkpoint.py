@@ -163,7 +163,7 @@ def run_alerts(chat=None):
             ax[0].set_xticks(df['ts'].iloc[-5:])
             ax[0].set_xticklabels(df['ts'].iloc[-5:].dt.strftime('%d %b %H:%M'))
 
-            sns.kdeplot(df[metric], ax=ax[1], fill=True)
+            sns.kdeplot(df[metric], ax=ax[1], shade=True)
             ax[1].axvline(lower, color='red', label='lower')
             ax[1].axvline(up, color='green', label='up')
             ax[1].axvline(df[metric].iloc[-1], color='black', label=metric)
