@@ -86,8 +86,8 @@ def check_anomaly_DBSCAN(df, metric, a=1.0, n=10):
 
 
 def run_alerts(chat=None):
-    chat_id = chat or 453565850
-    # chat_id = chat or -1001706798154
+    # chat_id = chat or 453565850
+    chat_id = chat or -1001706798154
     bot = telegram.Bot(token='5167010511:AAETy3cSIsBkRmmrI-4DmhMTVurzlwfVLi4')
     # bot = telegram.Bot(token=os.environ.get("REPORT_BOT_TOKEN"))
     
