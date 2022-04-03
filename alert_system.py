@@ -6,6 +6,9 @@ import os
 import pandas as pd
 import pandahouse
 from scipy.stats import t
+# from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import DBSCAN
+from sklearn.neighbors import NearestNeighbors
 
 connection = {
     'host': 'https://clickhouse.lab.karpov.courses',
@@ -55,9 +58,36 @@ def check_anomaly_IQR(df, metric, a=1.5):
         
     return alert_flag, df, lower, up, avg
 
+
+
+
+def check_anomaly_DBSCAN(df, metric, a=1.0, n=10):
+    nbrs = NearestNeighbors(n_neighbors=2).fit(df[[metric]])
+    distances, _ = nbrs.kneighbors(df[[metric]])
+    
+    dbscan = DBSCAN(eps = a*distances.max(), min_samples = n)
+    pred = dbscan.fit_predict(df[[metric]])
+    
+    df_temp = df[metric][pred == 0].sort_values() 
+    lower = df_temp.iloc[6] - a * distances.max()
+    up = df_temp.iloc[-7] + a * distances.max()
+    avg = df[metric].mean()
+    
+    if pred[-1] == -1:
+        alert_flag = 1
+    else:
+        alert_flag = 0
+    
+    return alert_flag, lower, up, avg
+
+
+
+
+
+
 def run_alerts(chat=None):
-    # chat_id = chat or 453565850
-    chat_id = chat or -1001706798154
+    chat_id = chat or 453565850
+    # chat_id = chat or -1001706798154
     bot = telegram.Bot(token='5167010511:AAETy3cSIsBkRmmrI-4DmhMTVurzlwfVLi4')
     # bot = telegram.Bot(token=os.environ.get("REPORT_BOT_TOKEN"))
     
@@ -92,7 +122,7 @@ def run_alerts(chat=None):
         df = data[['ts', 'date', 'hm', metric]].copy()
         is_alert, df = check_anomaly_CI(df, metric)
         
-        if is_alert:
+        if is_alert or True:
             msg = f'''Метрика {metric}:
     текущее значение - {df[metric].iloc[-1]},
     отклонение от предыдущего значения - {abs(1 - df[metric].iloc[-1]/df[metric].iloc[-2]) * 100:.2f}%,
@@ -151,7 +181,7 @@ def run_alerts(chat=None):
         df = data[['ts', metric]].copy()
         is_alert, df, lower, up, avg = check_anomaly_IQR(df, metric)
         
-        if is_alert:
+        if is_alert or True:
             msg = f'''Метрика {metric}:
     текущее значение - {df[metric].iloc[-1]},
     отклонение от среднего значения - {abs(1 - df[metric].iloc[-1]/avg) * 100:.2f}%,
@@ -187,6 +217,52 @@ def run_alerts(chat=None):
             bot.sendMessage(chat_id=chat_id, text=msg, parse_mode='HTML')
             bot.sendPhoto(chat_id=chat_id, photo=fig_object)
 
+            
+            
+            
+            
+    for metric in metrics_list:
+        df = data[['ts', metric]].copy()           
+        is_alert, lower, up, avg = check_anomaly_DBSCAN(df, metric)
+
+        if is_alert or True:
+            msg = f'''DBSCAN
+            Метрика {metric}:
+              текущее значение - {df[metric].iloc[-1]},
+              отклонение от среднего значения - {abs(1 - df[metric].iloc[-1]/avg) * 100:.2f}%,
+              <a href="https://superset.lab.karpov.courses/superset/dashboard/589/">Смотреть на дашборде</a>'''
+
+
+            fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(12,12))
+            plt.suptitle(metric)
+
+            sns.lineplot(x=df['ts'].iloc[-5:], y=df[metric].iloc[-5:], ax=ax[0], marker='o', label=metric)
+            ax[0].set
+            ax[0].axhline(lower, color='red', label='Верхняя граница')
+            ax[0].axhline(up, color='green', label='Нижняя граница')
+            ax[0].legend()
+            ax[0].set_xlabel('time')
+            ax[0].set_xticks(df['ts'].iloc[-5:])
+            ax[0].set_xticklabels(df['ts'].iloc[-5:].dt.strftime('%d %b %H:%M'))
+
+            # sns.kdeplot(df[metric], ax=ax[1], shade=True)
+            sns.rugplot(df[metric], ax=ax[1])
+            sns.swarmplot(x=df[metric], ax=ax[1], size=12)
+            ax[1].axvline(lower, color='red', label='Верхняя граница')
+            ax[1].axvline(up, color='green', label='Нижняя граница')
+            ax[1].axvline(df[metric].iloc[-1], color='black', label='Текущее значение')
+            ax[1].legend()
+
+            plt.tight_layout();
+            fig_object = io.BytesIO()
+            plt.savefig(fig_object)
+            fig_object.name = 'report.png'
+            fig_object.seek(0)
+            plt.close()
+
+
+            bot.sendMessage(chat_id=chat_id, text=msg, parse_mode='HTML')
+            bot.sendPhoto(chat_id=chat_id, photo=fig_object)
 
 try:
     run_alerts()
