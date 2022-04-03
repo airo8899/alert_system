@@ -86,8 +86,8 @@ def check_anomaly_DBSCAN(df, metric, a=1.0, n=10):
 
 
 def run_alerts(chat=None):
-    # chat_id = chat or 453565850
-    chat_id = chat or -1001706798154
+    chat_id = chat or 453565850
+    # chat_id = chat or -1001706798154
     bot = telegram.Bot(token='5167010511:AAETy3cSIsBkRmmrI-4DmhMTVurzlwfVLi4')
     # bot = telegram.Bot(token=os.environ.get("REPORT_BOT_TOKEN"))
     
@@ -122,7 +122,7 @@ def run_alerts(chat=None):
         df = data[['ts', 'date', 'hm', metric]].copy()
         is_alert, df = check_anomaly_CI(df, metric)
         
-        if is_alert or True:
+        if is_alert:
             msg = f'''Метрика {metric}:
     текущее значение - {df[metric].iloc[-1]},
     отклонение от предыдущего значения - {abs(1 - df[metric].iloc[-1]/df[metric].iloc[-2]) * 100:.2f}%,
@@ -181,7 +181,7 @@ def run_alerts(chat=None):
         df = data[['ts', metric]].copy()
         is_alert, df, lower, up, avg = check_anomaly_IQR(df, metric)
         
-        if is_alert or True:
+        if is_alert:
             msg = f'''Метрика {metric}:
     текущее значение - {df[metric].iloc[-1]},
     отклонение от среднего значения - {abs(1 - df[metric].iloc[-1]/avg) * 100:.2f}%,
@@ -225,7 +225,7 @@ def run_alerts(chat=None):
         df = data[['ts', metric]].copy()           
         is_alert, lower, up, avg = check_anomaly_DBSCAN(df, metric)
 
-        if is_alert or True:
+        if is_alert:
             msg = f'''DBSCAN
             Метрика {metric}:
               текущее значение - {df[metric].iloc[-1]},
