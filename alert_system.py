@@ -61,12 +61,13 @@ def check_anomaly_IQR(df, metric, a=1.5):
 
 
 
-def check_anomaly_DBSCAN(df, metric, a=1.0, n=10):
+def check_anomaly_DBSCAN(df, metric, a=1.5, n=7):
     nbrs = NearestNeighbors(n_neighbors=2).fit(df[[metric]])
     distances, _ = nbrs.kneighbors(df[[metric]])
     
     dbscan = DBSCAN(eps = a*distances.max(), min_samples = n)
     pred = dbscan.fit_predict(df[[metric]])
+    pred[pred != -1] = 0
     
     df_temp = df[metric][pred == 0].sort_values() 
     lower = df_temp.iloc[6] - a * distances.max()
@@ -122,7 +123,7 @@ def run_alerts(chat=None):
         df = data[['ts', 'date', 'hm', metric]].copy()
         is_alert, df = check_anomaly_CI(df, metric)
         
-        if is_alert:
+        if is_alert or True:
             msg = f'''Метрика {metric}:
     текущее значение - {df[metric].iloc[-1]},
     отклонение от предыдущего значения - {abs(1 - df[metric].iloc[-1]/df[metric].iloc[-2]) * 100:.2f}%,
@@ -181,7 +182,7 @@ def run_alerts(chat=None):
         df = data[['ts', metric]].copy()
         is_alert, df, lower, up, avg = check_anomaly_IQR(df, metric)
         
-        if is_alert:
+        if is_alert or True:
             msg = f'''Метрика {metric}:
     текущее значение - {df[metric].iloc[-1]},
     отклонение от среднего значения - {abs(1 - df[metric].iloc[-1]/avg) * 100:.2f}%,
@@ -225,12 +226,12 @@ def run_alerts(chat=None):
         df = data[['ts', metric]].copy()           
         is_alert, lower, up, avg = check_anomaly_DBSCAN(df, metric)
 
-        if is_alert:
+        if is_alert or True:
             msg = f'''DBSCAN
-            Метрика {metric}:
-              текущее значение - {df[metric].iloc[-1]},
-              отклонение от среднего значения - {abs(1 - df[metric].iloc[-1]/avg) * 100:.2f}%,
-              <a href="https://superset.lab.karpov.courses/superset/dashboard/589/">Смотреть на дашборде</a>'''
+        Метрика {metric}:
+          текущее значение - {df[metric].iloc[-1]},
+          отклонение от среднего значения - {abs(1 - df[metric].iloc[-1]/avg) * 100:.2f}%,
+          <a href="https://superset.lab.karpov.courses/superset/dashboard/589/">Смотреть на дашборде</a>'''
 
 
             fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(12,12))
