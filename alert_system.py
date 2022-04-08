@@ -133,8 +133,8 @@ def check_anomaly_DBSCAN(df, metric, a=1.8, n=5):
 
 
 def run_alerts(chat=None):
-    chat_id = chat or 453565850
-    # chat_id = chat or -1001706798154
+    # chat_id = chat or 453565850
+    chat_id = chat or -1001706798154
     
     bot = telegram.Bot(token=os.environ.get("REPORT_BOT_TOKEN"))
     
@@ -175,7 +175,7 @@ def run_alerts(chat=None):
         is_alert, df = check_anomaly_CI(df, metric)
         
         # если проверка определила выброс, то формируется сообщение и графиик значения метрики и доверительных интервалов
-        if is_alert or True:
+        if is_alert:
             msg = f'''Метрика {metric}:
     текущее значение - {df[metric].iloc[-1]},
     отклонение от предыдущего значения - {abs(1 - df[metric].iloc[-1]/df[metric].iloc[-2]) * 100:.2f}%,
@@ -238,7 +238,7 @@ def run_alerts(chat=None):
         is_alert, df, lower, up, avg = check_anomaly_IQR(df, metric)
         
         # если проверка определила выброс, то формируется сообщение и графиик 
-        if is_alert or True:
+        if is_alert:
             msg = f'''Метрика {metric}:
     текущее значение - {df[metric].iloc[-1]},
     отклонение от среднего значения - {abs(1 - df[metric].iloc[-1]/avg) * 100:.2f}%,
@@ -285,7 +285,7 @@ def run_alerts(chat=None):
         is_alert, lower, up, avg = check_anomaly_DBSCAN(df, metric)
 
         # если проверка определила выброс, то формируется сообщение и графиик 
-        if is_alert or True:
+        if is_alert:
             msg = f'''DBSCAN
         Метрика {metric}:
           текущее значение - {df[metric].iloc[-1]},
