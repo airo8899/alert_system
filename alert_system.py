@@ -249,7 +249,7 @@ def run_alerts(chat=None):
             plt.suptitle(metric)
 
             # линейный график с последними 5 значениями метрик и верхней и нижней границой
-            sns.lineplot(x=df['ts'].iloc[-5:], y=df[metric].iloc[-5:], ax=ax[0], marker='o')
+            sns.lineplot(x=df['ts'].iloc[-5:], y=df[metric].iloc[-5:], ax=ax[0], marker='o', label=metric)
             ax[0].set
             ax[0].axhline(lower, color='red', label='lower')
             ax[0].axhline(up, color='green', label='up')
